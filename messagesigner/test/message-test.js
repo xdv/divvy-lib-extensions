@@ -1,14 +1,14 @@
 /* eslint-disable max-len */
 'use strict';
 var assert = require('assert');
-var ripplelib = require('ripple-lib');
+var divvylib = require('divvy-lib');
 // The tests monkeypatch the sjcl instance, so we need to make sure we're using
-// the correct instance. If ripple-lib doesn't export sjcl, then import our own
+// the correct instance. If divvy-lib doesn't export sjcl, then import our own
 // version.
-var sjcl = ripplelib.sjcl || require('sjcl-extended');
-var Message = require('../src/message')(ripplelib, sjcl);
-var Seed = ripplelib.Seed;
-var Remote = ripplelib.Remote;
+var sjcl = divvylib.sjcl || require('sjcl-extended');
+var Message = require('../src/message')(divvylib, sjcl);
+var Seed = divvylib.Seed;
+var Remote = divvylib.Remote;
 
 describe('Message', function() {
 

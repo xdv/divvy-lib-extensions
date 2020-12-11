@@ -5,7 +5,7 @@ var GlobalBigNumber = require('bignumber.js')
 var BigNumber = GlobalBigNumber.another({DECIMAL_PLACES: 40})
 var parseQuality = require('./quality')
 
-var lsfSell = 0x00020000   // see "lsfSell" flag in rippled source code
+var lsfSell = 0x00020000   // see "lsfSell" flag in divvyd source code
 
 function removeUndefined(obj) {
   return _.omitBy(obj, _.isUndefined)
@@ -28,7 +28,7 @@ function convertOrderChange(order) {
   })
 }
 
-function rippleToUnixTimestamp(rpepoch) {
+function divvyToUnixTimestamp(rpepoch) {
   return (rpepoch + 0x386D4380) * 1000
 }
 
@@ -37,14 +37,14 @@ function getExpirationTime(node) {
   if (expirationTime === undefined) {
     return undefined
   }
-  return (new Date(rippleToUnixTimestamp(expirationTime))).toISOString()
+  return (new Date(divvyToUnixTimestamp(expirationTime))).toISOString()
 }
 
 function getQuality(node) {
   var takerGets = node.finalFields.TakerGets || node.newFields.TakerGets
   var takerPays = node.finalFields.TakerPays || node.newFields.TakerPays
-  var takerGetsCurrency = takerGets.currency || 'XRP'
-  var takerPaysCurrency = takerPays.currency || 'XRP'
+  var takerGetsCurrency = takerGets.currency || 'XDV'
+  var takerPaysCurrency = takerPays.currency || 'XDV'
   var bookDirectory = node.finalFields.BookDirectory
     || node.newFields.BookDirectory
   var qualityHex = bookDirectory.substring(bookDirectory.length - 16)
@@ -54,7 +54,7 @@ function getQuality(node) {
 function parseOrderStatus(node) {
   if (node.diffType === 'CreatedNode') {
     // "submitted" is more conventional, but could be confusing in the
-    // context of Ripple
+    // context of Divvy
     return 'created'
   }
 
@@ -128,10 +128,10 @@ function groupByAddress(orderChanges) {
 /**
  * Computes the complete list of every Offer that changed in the ledger
  * as a result of the given transaction.
- * Returns changes grouped by Ripple account.
+ * Returns changes grouped by Divvy account.
  *
- *  @param {Object} metadata - Transaction metadata as return by ripple-lib
- *  @returns {Object} - Orderbook changes grouped by Ripple account
+ *  @param {Object} metadata - Transaction metadata as return by divvy-lib
+ *  @returns {Object} - Orderbook changes grouped by Divvy account
  *
  */
 exports.parseOrderbookChanges = function parseOrderbookChanges(metadata) {

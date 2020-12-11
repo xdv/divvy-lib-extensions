@@ -7,8 +7,8 @@ const _ = require('lodash')
 const assert = require('assert-diff')
 const addresses = require('./fixtures/addresses')
 const fixtures = require('./fixtures/orderbook')
-const {IOUValue} = require('ripple-lib-value')
-const {RippleAPI} = require('ripple-lib')
+const {IOUValue} = require('divvy-lib-value')
+const {DivvyAPI} = require('divvy-lib')
 const {OrderBook} = require('../src/orderbook')
 const Utils = require('../src/orderbookutils')
 
@@ -17,7 +17,7 @@ describe('OrderBook Autobridging', function() {
   this.timeout(0)
 
   function createOrderBook(options) {
-    const api = new RippleAPI()
+    const api = new DivvyAPI()
     const orderbook = OrderBook.createOrderBook(api, options)
     return orderbook
   }
@@ -30,10 +30,10 @@ describe('OrderBook Autobridging', function() {
       issuer_pays: addresses.ISSUER
     })
 
-    assert.deepEqual(book._legOneBook._currencyGets, 'XRP')
+    assert.deepEqual(book._legOneBook._currencyGets, 'XDV')
     assert.deepEqual(book._legOneBook._currencyPays, 'USD')
     assert.deepEqual(book._legTwoBook._currencyGets, 'EUR')
-    assert.deepEqual(book._legTwoBook._currencyPays, 'XRP')
+    assert.deepEqual(book._legTwoBook._currencyPays, 'XDV')
   })
 
   it('Compute autobridged offers', function() {

@@ -9,51 +9,51 @@ const BigNumber = GlobalBigNumber.another({
 });
 
 const Value = require('./value').Value;
-const rippleUnits = new BigNumber(1e6);
+const divvyUnits = new BigNumber(1e6);
 
-class XRPValue extends Value {
+class XDVValue extends Value {
 
   constructor(value: string | BigNumber) {
     super(value);
     if (this._value.dp() > 6) {
       throw new Error(
         'Value has more than 6 digits of precision past the decimal point, '
-          + 'an IOUValue may be being cast to an XRPValue'
+          + 'an IOUValue may be being cast to an XDVValue'
         );
     }
   }
 
   multiply(multiplicand: Value) {
-    if (multiplicand instanceof XRPValue) {
+    if (multiplicand instanceof XDVValue) {
       return super.multiply(
-        new XRPValue(multiplicand._value.times(rippleUnits)));
+        new XDVValue(multiplicand._value.times(divvyUnits)));
     }
     return super.multiply(multiplicand);
   }
 
   divide(divisor: Value) {
-    if (divisor instanceof XRPValue) {
+    if (divisor instanceof XDVValue) {
       return super.divide(
-        new XRPValue(divisor._value.times(rippleUnits)));
+        new XDVValue(divisor._value.times(divvyUnits)));
     }
     return super.divide(divisor);
   }
 
   negate() {
-    return new XRPValue(this._value.neg());
+    return new XDVValue(this._value.neg());
   }
 
   _canonicalize(value) {
     if (value.isNaN()) {
       throw new Error('Invalid result');
     }
-    return new XRPValue(value.round(6, BigNumber.ROUND_DOWN));
+    return new XDVValue(value.round(6, BigNumber.ROUND_DOWN));
   }
 
   equals(comparator) {
-    return (comparator instanceof XRPValue)
+    return (comparator instanceof XDVValue)
       && this._value.equals(comparator._value);
   }
 }
 
-exports.XRPValue = XRPValue;
+exports.XDVValue = XDVValue;

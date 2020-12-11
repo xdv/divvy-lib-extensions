@@ -19,13 +19,13 @@ const {EventEmitter} = require('events')
 const {normalizeCurrency, isValidCurrency} = require('./currencyutils')
 const {AutobridgeCalculator} = require('./autobridgecalculator')
 const OrderBookUtils = require('./orderbookutils')
-const {isValidAddress} = require('ripple-address-codec')
-const {XRPValue, IOUValue} = require('ripple-lib-value')
+const {isValidAddress} = require('divvy-address-codec')
+const {XDVValue, IOUValue} = require('divvy-lib-value')
 const log = require('./log').internal.sub('orderbook')
 
-import type {RippledAmount} from './orderbookutils'
+import type {DivvydAmount} from './orderbookutils'
 
-type Value = XRPValue | IOUValue;
+type Value = XDVValue | IOUValue;
 
 type CurrencySpec = {
   currency: string,
@@ -44,7 +44,7 @@ type CreateOrderbookOptions = {
 
 const DEFAULT_TRANSFER_RATE = new IOUValue('1.000000000')
 
-const ZERO_NATIVE_AMOUNT = new XRPValue('0')
+const ZERO_NATIVE_AMOUNT = new XDVValue('0')
 
 const ZERO_NORMALIZED_AMOUNT = new IOUValue('0')
 
@@ -60,13 +60,13 @@ const EVENTS = [
 
 function prepareTrade(currency: string, issuer_?: string): string {
   const issuer = issuer_ === undefined ? '' : issuer_
-  const suffix = normalizeCurrency(currency) === 'XRP' ? '' : ('/' + issuer)
+  const suffix = normalizeCurrency(currency) === 'XDV' ? '' : ('/' + issuer)
   return currency + suffix
 }
 
-function parseRippledAmount(amount: RippledAmount): Value {
+function parseDivvydAmount(amount: DivvydAmount): Value {
   return typeof amount === 'string' ?
-    new XRPValue(amount) :
+    new XDVValue(amount) :
     new IOUValue(amount.value)
 }
 
@@ -79,7 +79,7 @@ function _sortOffersQuick(a, b) {
  * are returned
  *
  * @constructor OrderBook
- * @param {RippleAPI} api
+ * @param {DivvyAPI} api
  * @param {String} account
  * @param {String} ask currency
  * @param {String} ask issuer
@@ -153,7 +153,7 @@ class OrderBook extends EventEmitter {
                 prepareTrade(currencyPays, issuerPays)
     this._ledgerIndex = ledgerIndex
 
-    // When orderbook is IOU/IOU, there will be IOU/XRP and XRP/IOU
+    // When orderbook is IOU/IOU, there will be IOU/XDV and XDV/IOU
     // books that we must keep track of to compute autobridged offers
     this._legOneBook = null
     this._legTwoBook = null
@@ -164,8 +164,8 @@ class OrderBook extends EventEmitter {
     this._subscribed = false
     this._synced = false
 
-    this._isAutobridgeable = this._currencyGets !== 'XRP'
-      && this._currencyPays !== 'XRP'
+    this._isAutobridgeable = this._currencyGets !== 'XDV'
+      && this._currencyPays !== 'XDV'
 
     this._issuerTransferRate = null
     this._transferRateIsDefault = false
@@ -188,11 +188,11 @@ class OrderBook extends EventEmitter {
     this._onTransactionBound = this._onTransaction.bind(this)
 
     if (this._isAutobridgeable) {
-      this._legOneBook = new OrderBook(api, 'XRP', undefined,
+      this._legOneBook = new OrderBook(api, 'XDV', undefined,
         currencyPays, issuerPays, account, this._ledgerIndex, this._trace)
 
       this._legTwoBook = new OrderBook(api, currencyGets, issuerGets,
-        'XRP', undefined, account, this._ledgerIndex, this._trace)
+        'XDV', undefined, account, this._ledgerIndex, this._trace)
     }
 
     this._initializeSubscriptionMonitoring()
@@ -229,10 +229,10 @@ class OrderBook extends EventEmitter {
     // XXX Should check for same currency (non-native) && same issuer
     return (
       Boolean(this._currencyPays) && isValidCurrency(this._currencyPays) &&
-      (this._currencyPays === 'XRP' || isValidAddress(this._issuerPays)) &&
+      (this._currencyPays === 'XDV' || isValidAddress(this._issuerPays)) &&
       Boolean(this._currencyGets) && isValidCurrency(this._currencyGets) &&
-      (this._currencyGets === 'XRP' || isValidAddress(this._issuerGets)) &&
-      !(this._currencyPays === 'XRP' && this._currencyGets === 'XRP')
+      (this._currencyGets === 'XDV' || isValidAddress(this._issuerGets)) &&
+      !(this._currencyPays === 'XDV' && this._currencyGets === 'XDV')
     )
   }
 
@@ -260,7 +260,7 @@ class OrderBook extends EventEmitter {
       // that requests will be queued and
       // eventually all of them will fire back
       return Promise.reject(
-        new this._api.errors.RippleError('Server is offline'))
+        new this._api.errors.DivvyError('Server is offline'))
     }
 
     if (this._isAutobridgeable) {
@@ -293,11 +293,11 @@ class OrderBook extends EventEmitter {
       }
     }
 
-    if (this._currencyGets !== 'XRP') {
+    if (this._currencyGets !== 'XDV') {
       json.taker_gets.issuer = this._issuerGets
     }
 
-    if (this._currencyPays !== 'XRP') {
+    if (this._currencyPays !== 'XDV') {
       json.taker_pays.issuer = this._issuerPays
     }
 
@@ -305,7 +305,7 @@ class OrderBook extends EventEmitter {
   }
 
 
-  static _getValFromRippledAmount(value_: RippledAmount): string {
+  static _getValFromDivvydAmount(value_: DivvydAmount): string {
     return typeof value_ === 'string' ? value_ : value_.value
   }
 
@@ -523,10 +523,10 @@ class OrderBook extends EventEmitter {
     if (affectedNodes.length > 0) {
 
       const state = {
-        takerGetsTotal: this._currencyGets === 'XRP' ?
-          new XRPValue('0') : new IOUValue('0'),
-        takerPaysTotal: this._currencyPays === 'XRP' ?
-          new XRPValue('0') : new IOUValue('0'),
+        takerGetsTotal: this._currencyGets === 'XDV' ?
+          new XDVValue('0') : new IOUValue('0'),
+        takerPaysTotal: this._currencyPays === 'XDV' ?
+          new XDVValue('0') : new IOUValue('0'),
         transactionOwnerFunds: transaction.transaction.owner_funds
       }
 
@@ -559,9 +559,9 @@ class OrderBook extends EventEmitter {
         // We don't want to count an OfferCancel as a trade
         if (!isOfferCancel) {
           state.takerGetsTotal = state.takerGetsTotal
-            .add(parseRippledAmount(node.fieldsFinal.TakerGets))
+            .add(parseDivvydAmount(node.fieldsFinal.TakerGets))
           state.takerPaysTotal = state.takerPaysTotal
-            .add(parseRippledAmount(node.fieldsFinal.TakerPays))
+            .add(parseDivvydAmount(node.fieldsFinal.TakerPays))
         }
         break
       }
@@ -570,17 +570,17 @@ class OrderBook extends EventEmitter {
         this._modifyOffer(node)
 
         state.takerGetsTotal = state.takerGetsTotal
-          .add(parseRippledAmount(node.fieldsPrev.TakerGets))
-          .subtract(parseRippledAmount(node.fieldsFinal.TakerGets))
+          .add(parseDivvydAmount(node.fieldsPrev.TakerGets))
+          .subtract(parseDivvydAmount(node.fieldsFinal.TakerGets))
 
         state.takerPaysTotal = state.takerPaysTotal
-          .add(parseRippledAmount(node.fieldsPrev.TakerPays))
-          .subtract(parseRippledAmount(node.fieldsFinal.TakerPays))
+          .add(parseDivvydAmount(node.fieldsPrev.TakerPays))
+          .subtract(parseDivvydAmount(node.fieldsFinal.TakerPays))
         break
       }
       case 'CreatedNode': {
         this._validateAccount(node.fields.Account)
-        // rippled does not set owner_funds if the order maker is the issuer
+        // divvyd does not set owner_funds if the order maker is the issuer
         // because the value would be infinite
         const fundedAmount = state.transactionOwnerFunds !== undefined ?
           state.transactionOwnerFunds : 'Infinity'
@@ -594,7 +594,7 @@ class OrderBook extends EventEmitter {
   /**
    * Updates funded amounts/balances using modified balance nodes
    *
-   * Update owner funds using modified AccountRoot and RippleState nodes
+   * Update owner funds using modified AccountRoot and DivvyState nodes
    * Update funded amounts for offers in the orderbook using owner funds
    *
    * @param {Object} transaction - transaction that holds meta nodes
@@ -607,7 +607,7 @@ class OrderBook extends EventEmitter {
       return
     }
 
-    if (this._currencyGets !== 'XRP' && !this._issuerTransferRate) {
+    if (this._currencyGets !== 'XDV' && !this._issuerTransferRate) {
       if (this._trace) {
         log.info('waiting for transfer rate')
       }
@@ -625,7 +625,7 @@ class OrderBook extends EventEmitter {
 
     const affectedNodes = OrderBookUtils.getAffectedNodes(metadata, {
       nodeType: 'ModifiedNode',
-      entryType: this._currencyGets === 'XRP' ? 'AccountRoot' : 'RippleState'
+      entryType: this._currencyGets === 'XDV' ? 'AccountRoot' : 'DivvyState'
     })
 
     if (this._trace) {
@@ -650,7 +650,7 @@ class OrderBook extends EventEmitter {
   /**
    * Get account and final balance of a meta node
    *
-   * @param {Object} node - RippleState or AccountRoot meta node
+   * @param {Object} node - DivvyState or AccountRoot meta node
    * @return {Object}
    */
 
@@ -669,7 +669,7 @@ class OrderBook extends EventEmitter {
         result.balance = node.fieldsFinal.Balance
         break
 
-      case 'RippleState':
+      case 'DivvyState':
         if (node.fields.HighLimit.issuer === this._issuerGets) {
           result.account = node.fields.LowLimit.issuer
           result.balance = node.fieldsFinal.Balance.value
@@ -677,7 +677,7 @@ class OrderBook extends EventEmitter {
           result.account = node.fields.HighLimit.issuer
 
           // Negate balance on the trust line
-          result.balance = parseRippledAmount(node.fieldsFinal.Balance)
+          result.balance = parseDivvydAmount(node.fieldsFinal.Balance)
             .negate().toFixed()
         }
         break
@@ -693,7 +693,7 @@ class OrderBook extends EventEmitter {
   /**
    * Check that affected meta node represents a balance change
    *
-   * @param {Object} node - RippleState or AccountRoot meta node
+   * @param {Object} node - DivvyState or AccountRoot meta node
    * @return {Boolean}
    */
 
@@ -706,7 +706,7 @@ class OrderBook extends EventEmitter {
     }
 
     // Check if taker gets currency is native and balance is not a number
-    if (this._currencyGets === 'XRP') {
+    if (this._currencyGets === 'XDV') {
       return !isNaN(node.fields.Balance)
     }
 
@@ -798,9 +798,9 @@ class OrderBook extends EventEmitter {
    * @return {Amount}
    */
 
-  _subtractOwnerOfferTotal(account: string, amount: RippledAmount): Value {
+  _subtractOwnerOfferTotal(account: string, amount: DivvydAmount): Value {
     const previousAmount = this._getOwnerOfferTotal(account)
-    const newAmount = previousAmount.subtract(parseRippledAmount(amount))
+    const newAmount = previousAmount.subtract(parseDivvydAmount(amount))
 
     this._ownerOffersTotal[account] = newAmount
 
@@ -958,8 +958,8 @@ class OrderBook extends EventEmitter {
   }
 
   _getOfferTakerGetsFunded(offer: Object): Value {
-    return this._currencyGets === 'XRP' ?
-      new XRPValue(offer.taker_gets_funded) :
+    return this._currencyGets === 'XDV' ?
+      new XDVValue(offer.taker_gets_funded) :
       new IOUValue(offer.taker_gets_funded)
   }
 
@@ -972,7 +972,7 @@ class OrderBook extends EventEmitter {
    */
 
   _resetOwnerOfferTotal(account: string): void {
-    if (this._currencyGets === 'XRP') {
+    if (this._currencyGets === 'XDV') {
       this._ownerOffersTotal[account] = ZERO_NATIVE_AMOUNT
     } else {
       this._ownerOffersTotal[account] = ZERO_NORMALIZED_AMOUNT
@@ -995,7 +995,7 @@ class OrderBook extends EventEmitter {
 
   _requestTransferRate(): Promise<Value> {
 
-    if (this._currencyGets === 'XRP') {
+    if (this._currencyGets === 'XDV') {
       // Transfer rate is default for the native currency
       this._issuerTransferRate = DEFAULT_TRANSFER_RATE
       this._transferRateIsDefault = true
@@ -1033,7 +1033,7 @@ class OrderBook extends EventEmitter {
       // that requests will be queued and
       // eventually all of them will fire back
       return Promise.reject(
-        new this._api.errors.RippleError('Server is offline'))
+        new this._api.errors.DivvyError('Server is offline'))
     }
 
     if (this._trace) {
@@ -1050,7 +1050,7 @@ class OrderBook extends EventEmitter {
       this._lastUpdateLedgerSequence = response.ledger_index
       if (!Array.isArray(response.offers)) {
         this._emitAsync(['model', []])
-        throw new this._api.errors.RippleError('Invalid response')
+        throw new this._api.errors.DivvyError('Invalid response')
       }
 
       if (this._ledgerIndex) {
@@ -1198,7 +1198,7 @@ class OrderBook extends EventEmitter {
   _setOfferFundedAmount(offer: Object): Object {
     assert.strictEqual(typeof offer, 'object', 'Offer is invalid')
 
-    const takerGets = parseRippledAmount(offer.TakerGets)
+    const takerGets = parseDivvydAmount(offer.TakerGets)
     const fundedAmount = this._getOwnerFunds(offer.Account)
     const previousOfferSum = this._getOwnerOfferTotal(offer.Account)
     const currentOfferSum = previousOfferSum.add(takerGets)
@@ -1211,7 +1211,7 @@ class OrderBook extends EventEmitter {
     if (offer.is_fully_funded) {
       offer.taker_gets_funded = takerGets.toString()
       offer.taker_pays_funded =
-        OrderBook._getValFromRippledAmount(offer.TakerPays)
+        OrderBook._getValFromDivvydAmount(offer.TakerPays)
     } else if (previousOfferSum.comparedTo(fundedAmount) < 0) {
       offer.taker_gets_funded =
         fundedAmount.subtract(previousOfferSum).toString()
@@ -1220,7 +1220,7 @@ class OrderBook extends EventEmitter {
       const takerPaysFunded = quality.multiply(
         new IOUValue(offer.taker_gets_funded))
 
-      offer.taker_pays_funded = (this._currencyPays === 'XRP')
+      offer.taker_pays_funded = (this._currencyPays === 'XDV')
         ? String(Math.floor(Number(takerPaysFunded.toString())))
         : takerPaysFunded.toString()
     } else {
@@ -1240,7 +1240,7 @@ class OrderBook extends EventEmitter {
    * @return {Amount}
    */
 
-  _addOwnerOfferTotal(account: string, amount: RippledAmount): Value {
+  _addOwnerOfferTotal(account: string, amount: DivvydAmount): Value {
     const previousAmount = this._getOwnerOfferTotal(account)
     const currentAmount = previousAmount.add(this._makeGetsValue(amount))
 
@@ -1261,16 +1261,16 @@ class OrderBook extends EventEmitter {
     if (amount) {
       return amount
     }
-    return this._currencyGets === 'XRP' ?
+    return this._currencyGets === 'XDV' ?
       ZERO_NATIVE_AMOUNT :
       ZERO_NORMALIZED_AMOUNT
   }
 
 
-  _makeGetsValue(value_: RippledAmount): Value {
-    const value = OrderBook._getValFromRippledAmount(value_)
-    return this._currencyGets === 'XRP' ?
-      new XRPValue(value) :
+  _makeGetsValue(value_: DivvydAmount): Value {
+    const value = OrderBook._getValFromDivvydAmount(value_)
+    return this._currencyGets === 'XDV' ?
+      new XDVValue(value) :
       new IOUValue(value)
   }
 
@@ -1300,7 +1300,7 @@ class OrderBook extends EventEmitter {
     if (this._trace) {
       log.info('No owner funds for ' + account, this._key)
     }
-    throw new this._api.errors.RippleError('No owner funds')
+    throw new this._api.errors.DivvyError('No owner funds')
   }
 
 
@@ -1328,11 +1328,11 @@ class OrderBook extends EventEmitter {
 
   /**
    * Compute autobridged offers for an IOU:IOU orderbook by merging offers from
-   * IOU:XRP and XRP:IOU books
+   * IOU:XDV and XDV:IOU books
    */
 
   _computeAutobridgedOffers(): Promise<void> {
-    assert(this._currencyGets !== 'XRP' && this._currencyPays !== 'XRP',
+    assert(this._currencyGets !== 'XDV' && this._currencyPays !== 'XDV',
       'Autobridging is only for IOU:IOU orderbooks')
 
     if (this._trace) {

@@ -20,7 +20,7 @@
     "validated": true
   },
   "book_offers": {
-    "XRPUSD": {
+    "XDVUSD": {
       "ledger_current_index": 16989787,
       "offers": [
         {
@@ -5946,7 +5946,7 @@
       ],
       "validated": true
     },
-    "USDXRP": {
+    "USDXDV": {
       "ledger_current_index": 16989787,
       "offers": [
         {

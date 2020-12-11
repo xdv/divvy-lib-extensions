@@ -3,7 +3,7 @@
 var _ = require('lodash')
 var BigNumber = require('bignumber.js')
 var normalizeNodes = require('./utils').normalizeNodes
-var dropsToXRP = require('./utils').dropsToXRP
+var dropsToXDV = require('./utils').dropsToXDV
 
 function groupByAddress(balanceChanges) {
   var grouped = _.groupBy(balanceChanges, function(node) {
@@ -41,7 +41,7 @@ function parseFinalBalance(node) {
 }
 
 
-function parseXRPQuantity(node, valueParser) {
+function parseXDVQuantity(node, valueParser) {
   var value = valueParser(node)
 
   if (value === null) {
@@ -52,8 +52,8 @@ function parseXRPQuantity(node, valueParser) {
     address: node.finalFields.Account || node.newFields.Account,
     balance: {
       counterparty: '',
-      currency: 'XRP',
-      value: dropsToXRP(value).toString()
+      currency: 'XDV',
+      value: dropsToXDV(value).toString()
     }
   }
 }
@@ -99,8 +99,8 @@ function parseTrustlineQuantity(node, valueParser) {
 function parseQuantities(metadata, valueParser) {
   var values = normalizeNodes(metadata).map(function(node) {
     if (node.entryType === 'AccountRoot') {
-      return [parseXRPQuantity(node, valueParser)]
-    } else if (node.entryType === 'RippleState') {
+      return [parseXDVQuantity(node, valueParser)]
+    } else if (node.entryType === 'DivvyState') {
       return parseTrustlineQuantity(node, valueParser)
     }
     return []

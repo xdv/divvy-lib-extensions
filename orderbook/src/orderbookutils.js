@@ -3,7 +3,7 @@
 'use strict' // eslint-disable-line strict
 
 const _ = require('lodash')
-const binary = require('ripple-binary-codec')
+const binary = require('divvy-binary-codec')
 const OrderBookUtils = {}
 
 
@@ -22,13 +22,13 @@ OrderBookUtils.convertOfferQualityToHexFromText = function(
   return binary.encodeQuality(quality)
 }
 
-type RippledAmountIOU = {
+type DivvydAmountIOU = {
   currency: string,
   value: string,
   issuer?: string
 }
 
-export type RippledAmount = string | RippledAmountIOU
+export type DivvydAmount = string | DivvydAmountIOU
 
 
 type MetaData = {
@@ -62,15 +62,15 @@ function getNodeType(node) {
 }
 
 
-function rippledAmountToCurrencyString(amount: RippledAmount): string {
+function divvydAmountToCurrencyString(amount: DivvydAmount): string {
   return typeof amount === 'string' ?
-    'XRP' :
+    'XDV' :
     (amount.currency + '/' +
     (amount.issuer ? amount.issuer : ''))
 }
 
-OrderBookUtils.getValueFromRippledAmount = function(
-  amount: RippledAmount
+OrderBookUtils.getValueFromDivvydAmount = function(
+  amount: DivvydAmount
 ): string {
   return typeof amount === 'string' ? amount : amount.value
 }
@@ -100,8 +100,8 @@ OrderBookUtils.getAffectedNodes = function(
       result.fieldsFinal = _node.FinalFields || { }
 
       if (result.entryType === 'Offer') {
-        const gets = rippledAmountToCurrencyString(result.fields.TakerGets)
-        const pays = rippledAmountToCurrencyString(result.fields.TakerPays)
+        const gets = divvydAmountToCurrencyString(result.fields.TakerGets)
+        const pays = divvydAmountToCurrencyString(result.fields.TakerPays)
 
         const key = gets + ':' + pays
 

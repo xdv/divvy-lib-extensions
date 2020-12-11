@@ -4,19 +4,19 @@ var assert = require('assert-diff')
 var fs = require('fs')
 var parseFinalBalances = require('../src/index').parseFinalBalances
 
-// Pay 100 XRP from rKmB to rLDY to create rLDY account
+// Pay 100 XDV from rKmB to rLDY to create rLDY account
 var createAccountBalanceChanges = {
   rLDYrujdKUfVx28T9vRDAbyJ7G2WVXKo4K: [
     {
       value: '100',
-      currency: 'XRP',
+      currency: 'XDV',
       counterparty: ''
     }
   ],
   rKmBGxocj9Abgy25J51Mk1iqFzW9aVF9Tc: [
     {
       value: '339.903994',
-      currency: 'XRP',
+      currency: 'XDV',
       counterparty: ''
     }
   ]
@@ -32,7 +32,7 @@ var usdFirstPaymentBalanceChanges = {
     },
     {
       value: '239.807992',
-      currency: 'XRP',
+      currency: 'XDV',
       counterparty: ''
     }
   ],
@@ -86,7 +86,7 @@ var usdFullPaymentBalanceChanges = {
     },
     {
       value: '99.976002',
-      currency: 'XRP',
+      currency: 'XDV',
       counterparty: ''
     }
   ]
@@ -102,7 +102,7 @@ var usdPaymentBalanceChanges = {
     },
     {
       value: '239.555992',
-      currency: 'XRP',
+      currency: 'XDV',
       counterparty: ''
     }
   ],
@@ -138,7 +138,7 @@ var setTrustlineBalanceChanges = {
     },
     {
       value: '99.940002',
-      currency: 'XRP',
+      currency: 'XDV',
       counterparty: ''
     }
   ],
@@ -160,7 +160,7 @@ var setTrustlineBalanceChanges3 = {
     },
     {
       counterparty: '',
-      currency: 'XRP',
+      currency: 'XDV',
       value: '99.884302'
     }
   ],
@@ -182,7 +182,7 @@ var setTrustlineBalanceChanges2 = {
     },
     {
       counterparty: '',
-      currency: 'XRP',
+      currency: 'XDV',
       value: '9248.902096'
     }
   ],
@@ -194,7 +194,7 @@ var setTrustlineBalanceChanges2 = {
     },
     {
       counterparty: '',
-      currency: 'XRP',
+      currency: 'XDV',
       value: '149.99998'
     }
   ]
@@ -211,7 +211,7 @@ var createTrustlineBalanceChanges = {
     },
     {
       counterparty: '',
-      currency: 'XRP',
+      currency: 'XDV',
       value: '99.740302'
     }
   ],
@@ -254,7 +254,7 @@ var deleteTrustlineBalanceChanges = {
     },
     {
       counterparty: '',
-      currency: 'XRP',
+      currency: 'XDV',
       value: '99.752302'
     }
   ]
@@ -276,7 +276,7 @@ var redeemBalanceChanges = {
     },
     {
       counterparty: '',
-      currency: 'XRP',
+      currency: 'XDV',
       value: '999.99998'
     }
   ]
@@ -298,7 +298,7 @@ var redeemThenIssueBalanceChanges = {
     },
     {
       counterparty: '',
-      currency: 'XRP',
+      currency: 'XDV',
       value: '999.99997'
     }
   ]
@@ -325,7 +325,7 @@ var multipathBalanceChanges = {
     },
     {
       counterparty: '',
-      currency: 'XRP',
+      currency: 'XDV',
       value: '999.99999'
     },
     {
@@ -389,8 +389,8 @@ function loadFixture(filename) {
 }
 
 describe('parseFinalBalances', function() {
-  it('XRP create account', function() {
-    var paymentResponse = loadFixture('payment-xrp-create-account.json')
+  it('XDV create account', function() {
+    var paymentResponse = loadFixture('payment-xdv-create-account.json')
     var result = parseFinalBalances(paymentResponse.metadata)
     assert.deepEqual(result, createAccountBalanceChanges)
   })

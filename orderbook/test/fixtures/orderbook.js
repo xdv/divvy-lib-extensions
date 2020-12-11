@@ -4,8 +4,8 @@
 
 const _ = require('lodash')
 const addresses = require('./addresses')
-const {XRPValue, IOUValue} = require('ripple-lib-value')
-const binary = require('ripple-binary-codec')
+const {XDVValue, IOUValue} = require('divvy-lib-value')
+const binary = require('divvy-binary-codec')
 
 module.exports.FIAT_BALANCE = '10'
 module.exports.NATIVE_BALANCE = '55'
@@ -702,7 +702,7 @@ module.exports.MODIFIED_NODES = [
   }
 ]
 
-module.exports.transactionWithRippleState = function(options) {
+module.exports.transactionWithDivvyState = function(options) {
   options = options || {}
   _.defaults(options, {
     issuer: addresses.ISSUER,
@@ -741,7 +741,7 @@ module.exports.transactionWithRippleState = function(options) {
               value: '0'
             }
           },
-          LedgerEntryType: 'RippleState',
+          LedgerEntryType: 'DivvyState',
           LedgerIndex: 'EA4BF03B4700123CDFFB6EB09DC1D6E28D5CEB7F680FB00FC24BC1C3BB2DB959',
           PreviousTxnID: '53354D84BAE8FDFC3F4DA879D984D24B929E7FEB9100D2AD9EFCD2E126BCCDC8',
           PreviousTxnLgrSeq: 343570
@@ -822,7 +822,7 @@ module.exports.transactionWithCreatedOffer = function(options) {
   })
 
   const takerGets = new IOUValue(options.amount)
-  const takerPays = new XRPValue(module.exports.TAKER_PAYS)
+  const takerPays = new XDVValue(module.exports.TAKER_PAYS)
   const quality = takerPays.divide(takerGets)
 
   const BookDirectory = binary.encodeQuality(quality.toString())
@@ -867,7 +867,7 @@ module.exports.transactionWithCreatedOfferR = function(options) {
   })
 
   const takerGets = new IOUValue(options.amount)
-  const takerPays = new XRPValue(module.exports.TAKER_PAYS)
+  const takerPays = new XDVValue(module.exports.TAKER_PAYS)
   const quality = takerPays.divide(takerGets)
 
   const BookDirectory = binary.encodeQuality(quality.toString())
