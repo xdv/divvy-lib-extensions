@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "babel-runtime": "^5.8.29",
-    "lodash": "^3.10.1",
+    "lodash": "^4.17.19",
     "divvy-address-codec": "^2.0.1",
     "divvy-binary-codec": "^0.1.2",
     "divvy-lib-value": "0.1.0"
